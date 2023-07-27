@@ -1,4 +1,4 @@
 package com.rmaprojects.weatherwatch.di
 
-class AppModule {
+class RepositoryModule {
 }
