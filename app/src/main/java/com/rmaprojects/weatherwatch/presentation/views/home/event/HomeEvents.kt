@@ -1,4 +1,5 @@
-package com.rmaprojects.weatherwatch.presentation.views.main.event
+package com.rmaprojects.weatherwatch.presentation.views.home.event
 
-class WeatherWatchEvents {
+sealed class HomeEvents {
+    object GetWeatherInfo: HomeEvents()
 }

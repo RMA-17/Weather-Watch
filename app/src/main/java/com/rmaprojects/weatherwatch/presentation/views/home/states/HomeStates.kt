@@ -1,4 +1,7 @@
 package com.rmaprojects.weatherwatch.presentation.views.home.states
 
-class HomeStates {
+sealed class HomeStates {
+    data object Loading: HomeStates()
+    data class Error(val message: String): HomeStates()
+    data object Success: HomeStates()
 }
