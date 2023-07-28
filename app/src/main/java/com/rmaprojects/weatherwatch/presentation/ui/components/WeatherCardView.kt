@@ -11,11 +11,11 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Cyclone
 import androidx.compose.material.icons.filled.WaterDrop
-import androidx.compose.material3.Button
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ElevatedCard
@@ -26,12 +26,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.example.compose.WeatherWatchTheme
 import com.rmaprojects.weatherwatch.BuildConfig
@@ -71,17 +68,17 @@ fun WeatherCardView(
             if (mainCard && temperature != null) {
                 LargeCard(
                     temperature = "$temperature°C",
-                    humidity = humidity!!,
+                    humidity = humidity ?: 0,
                     windSpeed = windSpeed,
                     placeName = placeName,
                     todayDate = todayDate,
                     weatherStatus = weatherStatus,
                     weatherIcon = weatherIcon
                 )
-            } else if (!mainCard) {
+            } else if (!mainCard && temperature != null) {
                 SmallCard(
                     temperature = "$temperature°C",
-                    humidity = humidity!!,
+                    humidity = humidity ?: 0,
                     windSpeed = windSpeed,
                     placeName = placeName,
                     weatherStatus = weatherStatus,
@@ -142,11 +139,11 @@ fun LargeCard(
                 model = "${BuildConfig.WEATHER_ICON_URL}/$weatherIcon@4x.png",
                 contentDescription = weatherStatus,
                 modifier = Modifier
-                    .size(178.dp)
+                    .size(156.dp)
             )
             Text(
                 text = "$temperature",
-                style = MaterialTheme.typography.displaySmall,
+                style = MaterialTheme.typography.headlineLarge,
                 textAlign = TextAlign.Center
             )
         }
@@ -206,23 +203,23 @@ fun SmallCard(
     ) {
         Column(
             modifier = Modifier
+                .fillMaxSize()
                 .weight(1F),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Box(
+            Column(
                 modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 AsyncImage(
                     model = "${BuildConfig.WEATHER_ICON_URL}/$weatherIcon@4x.png",
                     contentDescription = weatherStatus,
                     modifier = Modifier
-                        .size(72.dp)
-                        .offset(x = (-8).dp)
+                        .size(64.dp)
                 )
                 Text(
-                    modifier = Modifier.offset(x = 8.dp),
                     text = "$temperature",
                     style = MaterialTheme.typography.headlineLarge,
                     textAlign = TextAlign.Center
@@ -231,6 +228,7 @@ fun SmallCard(
         }
         Column(
             modifier = Modifier
+                .fillMaxSize()
                 .padding(8.dp)
                 .weight(3F),
         ) {
@@ -265,16 +263,20 @@ fun WeatherCardViewPrev() {
         Surface(
             color = MaterialTheme.colorScheme.background,
         ) {
-            WeatherCardView(
-                modifier = Modifier.padding(8.dp),
-                temperature = "31",
-                weatherIcon = "01d",
-                placeName = "London",
-                humidity = 45,
-                windSpeed = "45",
-                weatherStatus = "Clear",
-                todayDate = "Jum'at 28 Juni 2023"
-            )
+            LazyColumn {
+                items(10) {
+                    WeatherCardView(
+                        modifier = Modifier.padding(8.dp),
+                        temperature = "31",
+                        weatherIcon = "01d",
+                        placeName = "London",
+                        humidity = 45,
+                        windSpeed = "45",
+                        weatherStatus = "Clear",
+                        todayDate = "Jum'at 28 Juni 2023"
+                    )
+                }
+            }
         }
     }
 }

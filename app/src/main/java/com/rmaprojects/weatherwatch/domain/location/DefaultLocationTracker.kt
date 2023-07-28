@@ -7,6 +7,8 @@ import android.location.Location
 import android.location.LocationManager
 import androidx.core.content.ContextCompat
 import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationCallback
+import com.google.android.gms.location.LocationResult
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.suspendCancellableCoroutine
 
@@ -14,7 +16,7 @@ import kotlinx.coroutines.suspendCancellableCoroutine
 class DefaultLocationTracker(
     private val fusedLocationProviderClient: FusedLocationProviderClient,
     private val application: Application
-): LocationTracker {
+) : LocationTracker {
     @OptIn(ExperimentalCoroutinesApi::class)
     override suspend fun getCurrentLocation(): LocationTrackerCondition<Location?> {
         val isFineLocationPermitted = ContextCompat.checkSelfPermission(

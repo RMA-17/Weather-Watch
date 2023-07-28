@@ -1,14 +1,19 @@
 package com.rmaprojects.weatherwatch.presentation.views.home
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -34,6 +39,7 @@ import com.rmaprojects.weatherwatch.presentation.views.home.states.HomeStates
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import kotlin.math.roundToInt
 
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
@@ -55,6 +61,9 @@ fun HomeScreen(
     }
 
     LaunchedEffect(locationPermissions.allPermissionsGranted) {
+        if (viewModel.checkSavedCache() != 0) {
+            viewModel.loadFromCache()
+        }
         if (locationPermissions.allPermissionsGranted) {
             viewModel.getLocation()
         }
@@ -66,22 +75,21 @@ fun HomeScreen(
         Locale.getDefault()
     ).format(Date(System.currentTimeMillis()))
 
-    Column(
-        modifier = Modifier.fillMaxSize(),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+    PermissionsRequired(
+        multiplePermissionsState = locationPermissions,
+        permissionsNotGrantedContent = { LocationPermissionNotGrantedContent(locationPermissions) },
+        permissionsNotAvailableContent = {
+            LocationPermissionNotGrantedContent(
+                locationPermissions
+            )
+        }
     ) {
-        PermissionsRequired(
-            multiplePermissionsState = locationPermissions,
-            permissionsNotGrantedContent = { LocationPermissionNotGrantedContent(locationPermissions) },
-            permissionsNotAvailableContent = {
-                LocationPermissionNotGrantedContent(
-                    locationPermissions
-                )
-            }
-        ) {
-            when (homeScreenState) {
-                is HomeStates.Error -> {
+        when (homeScreenState) {
+            is HomeStates.Error -> {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
                     ElevatedCard(
                         elevation = CardDefaults.elevatedCardElevation(
                             defaultElevation = 8.dp,
@@ -102,42 +110,61 @@ fun HomeScreen(
                             )
                             Spacer(modifier = Modifier.height(8.dp))
                             Button(onClick = {
-                                viewModel.getWeather()
+                                viewModel.getLocation()
                             }) {
                                 Text(text = "Retry")
                             }
                         }
                     }
                 }
+            }
 
-                is HomeStates.Loading -> {
+            is HomeStates.Loading -> {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
                     CircularProgressIndicator()
                 }
-
-                is HomeStates.Success -> {
-
-                    val weatherData by remember { viewModel.weatherData }
-
-                    WeatherCardView(
-                        modifier = Modifier.padding(12.dp),
-                        temperature = "${weatherData?.temperature}",
-                        mainCard = true,
-                        todayDate = time,
-                        placeName = "${weatherData?.placeName}",
-                        humidity = weatherData?.humidity,
-                        weatherIcon = "${weatherData?.weatherIconUrl}",
-                        weatherStatus = "${weatherData?.weatherStatus}",
-                        windSpeed = "${weatherData?.windSpeed}"
-                    )
-                }
             }
-        }
-        Spacer(modifier = Modifier.height(16.dp))
-        LazyRow(
-            contentPadding = PaddingValues(horizontal = 12.dp),
-        ) {
-            items(viewModel.weatherFromCityList) {
 
+            is HomeStates.Success -> {
+
+                val weatherData by remember { viewModel.weatherData }
+
+                LazyColumn(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .fillMaxSize(),
+                    contentPadding = PaddingValues(8.dp)
+                ) {
+                    item {
+                        WeatherCardView(
+                            modifier = Modifier.padding(8.dp),
+                            temperature = "${weatherData?.temperature?.roundToInt()}",
+                            mainCard = true,
+                            todayDate = time,
+                            placeName = "${weatherData?.placeName}",
+                            humidity = weatherData?.humidity,
+                            weatherIcon = "${weatherData?.weatherIconUrl}",
+                            weatherStatus = "${weatherData?.weatherStatus}",
+                            windSpeed = "${weatherData?.windSpeed}"
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+                    }
+                    items(viewModel.weatherFromCityList) { capturedWeather ->
+                        WeatherCardView(
+                            modifier = Modifier.padding(8.dp),
+                            temperature = "${capturedWeather?.temperature?.roundToInt()}",
+                            placeName = "${capturedWeather?.placeName}",
+                            humidity = capturedWeather?.humidity,
+                            windSpeed = "${capturedWeather?.windSpeed}",
+                            weatherStatus = "${capturedWeather?.weatherStatus}",
+                            weatherIcon = "${capturedWeather?.weatherIconUrl}"
+                        )
+                    }
+                }
             }
         }
     }

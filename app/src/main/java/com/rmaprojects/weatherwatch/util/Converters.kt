@@ -1,5 +1,6 @@
 package com.rmaprojects.weatherwatch.util
 
+import com.rmaprojects.weatherwatch.data.source.local.entity.WeatherEntity
 import com.rmaprojects.weatherwatch.data.source.remote.response.GetWeatherResponse
 import com.rmaprojects.weatherwatch.domain.model.WeatherModel
 
@@ -31,4 +32,31 @@ object Converters {
             data.name
         )
     }
+}
+
+fun WeatherModel.toWeatherEntity(isFromLocation: Boolean): WeatherEntity {
+    return WeatherEntity(
+        isFromLocation,
+        this.longitude,
+        this.latitude,
+        this.weatherStatus,
+        this.weatherIconUrl,
+        this.temperature,
+        this.humidity,
+        this.windSpeed,
+        this.placeName
+    )
+}
+
+fun WeatherEntity.toWeatherModel(): WeatherModel {
+    return WeatherModel(
+        this.longitude,
+        this.latitude,
+        this.weatherStatus,
+        this.weatherIconUrl,
+        this.temperature,
+        this.humidity,
+        this.windSpeed,
+        this.placeName
+    )
 }
