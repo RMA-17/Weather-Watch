@@ -5,10 +5,16 @@ import android.content.Context
 import android.content.pm.PackageManager
 import android.location.Location
 import android.location.LocationManager
+import android.location.LocationRequest
 import androidx.core.content.ContextCompat
+import com.google.android.gms.location.CurrentLocationRequest
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationResult
+import com.google.android.gms.location.Priority
+import com.google.android.gms.tasks.CancellationToken
+import com.google.android.gms.tasks.CancellationTokenSource
+import com.google.android.gms.tasks.OnTokenCanceledListener
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.suspendCancellableCoroutine
 
@@ -46,25 +52,32 @@ class DefaultLocationTracker(
         }
 
         return suspendCancellableCoroutine { cont ->
-            fusedLocationProviderClient.lastLocation.apply {
-                if (isComplete) {
-                    if (isSuccessful) {
+            fusedLocationProviderClient.getCurrentLocation(Priority.PRIORITY_HIGH_ACCURACY, CancellationTokenSource().token)
+                .apply {
+                    if (isComplete) {
+                        if (isSuccessful) {
+                            cont.resume(LocationTrackerCondition.Success(result)) {}
+                        } else {
+                            cont.resume(LocationTrackerCondition.Error()) {}
+                        }
+                        return@suspendCancellableCoroutine
+                    }
+                    addOnSuccessListener {
                         cont.resume(LocationTrackerCondition.Success(result)) {}
-                    } else {
+                    }
+                    addOnFailureListener {
                         cont.resume(LocationTrackerCondition.Error()) {}
                     }
-                    return@suspendCancellableCoroutine
+                    addOnCanceledListener {
+                        cont.cancel()
+                    }
                 }
-                addOnSuccessListener {
-                    cont.resume(LocationTrackerCondition.Success(result)) {}
-                }
-                addOnFailureListener {
-                    cont.resume(LocationTrackerCondition.Error()) {}
-                }
-                addOnCanceledListener {
-                    cont.cancel()
-                }
-            }
+//            fusedLocationProviderClient.lastLocation.apply {
+//                if (isComplete) {
+
+//                }
+//
+//            }
         }
     }
 }

@@ -109,9 +109,9 @@ class HomeViewModel @Inject constructor(
                     }
 
                     is ResponseStatus.Success -> {
+                        useCase.clearAll()
                         _homeScreenState.emit(HomeStates.Success)
                         _weatherData.value = getWeatherStatus.data
-                        useCase.clearAll()
                         useCase.insertWeather(
                             getWeatherStatus.data,
                             weatherFromCityList.toList().filterNotNull()
